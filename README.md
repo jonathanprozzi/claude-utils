@@ -267,9 +267,11 @@ The `skills/` directory contains full Claude Code skills (vs. slash commands). T
 
 ### Zork
 
-An adaptive Zork player that Claude can use to play classic text adventures, with persistent save state and optional Obsidian sync for capturing learnings. See [skills/zork/README.md](skills/zork/README.md) for details.
+An adaptive Zork player that Claude can use to play classic text adventures, with persistent save state and optional Obsidian sync for capturing learnings.
 
 This is the only "skill" (vs. command) that emerged from extensive testing with `/skill-builder` — an example of when the full skill format is actually warranted.
+
+See [skills/zork/README.md](skills/zork/README.md) for installation, usage, and credits.
 
 ## Related
 
