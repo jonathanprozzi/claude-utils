@@ -1,0 +1,4 @@
+# Ignore save files and user config
+*.qzl
+config.json
+TRANSCRIPT.md
