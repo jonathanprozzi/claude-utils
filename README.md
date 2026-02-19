@@ -259,6 +259,42 @@ Automatically creates a checkpoint before Claude compacts the conversation conte
    }
    ```
 
+### `safety-check.sh`
+
+A PreToolUse hook that blocks dangerous commands before they execute. Covers git destructive operations, file deletion, and database drops.
+
+**What it blocks:**
+
+- **Always blocked:** `git reset --hard`, `git clean -f`, `push --force`, `--no-verify`, `git checkout .`, `git restore .`
+- **Blocked by default (configurable):** `git push`, `git branch -D`, `push --force-with-lease`
+- **File deletion:** `rm` and variants (`shred`, `unlink`, `sudo rm`, `xargs rm`, `find -delete`) — suggests `trash` instead
+- **Database:** `DROP TABLE`, `DROP DATABASE`, `TRUNCATE`
+
+**Environment variables for bypass** (set in `.claude/settings.local.json` env):
+
+| Variable | Effect |
+|----------|--------|
+| `CLAUDE_SAFETY_ALLOW_PUSH=1` | Allows `git push` (still blocks `--force`) |
+| `CLAUDE_SAFETY_ALLOW_FORCE_LEASE=1` | Allows `push --force-with-lease` |
+| `CLAUDE_SAFETY_ALLOW_BRANCH_DELETE=1` | Allows `git branch -D` |
+
+**To enable:**
+
+Add to your Claude Code settings (`.claude/settings.json`):
+
+```json
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": ["~/.config/claude-code/hooks/safety-check.sh"]
+      }
+    ]
+  }
+}
+```
+
 **Note:** Hooks require a bit more setup and understanding of Claude Code's hook system. If you're new to this workflow, start with just the slash commands and add hooks later when you want automation.
 
 ## Skills

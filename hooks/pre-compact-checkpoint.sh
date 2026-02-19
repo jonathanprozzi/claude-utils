@@ -38,8 +38,13 @@ if [[ -z "$VAULT_PATH" ]]; then
     exit 0
 fi
 
-# Get today's date
-DATE=$(date +%Y-%m-%d)
+# Get today's date (treat midnight-5am as previous day for session continuity)
+HOUR=$(date +%H)
+if [[ $HOUR -lt 5 ]]; then
+    DATE=$(date -v-1d +%Y-%m-%d)  # macOS: yesterday
+else
+    DATE=$(date +%Y-%m-%d)
+fi
 TIME=$(date +"%l:%M%p" | tr '[:upper:]' '[:lower:]' | sed 's/^ //')  # e.g., "3:45pm"
 
 # Check if today's daily session transcript exists
@@ -83,6 +88,31 @@ for t in topics[:5]:  # Show more topics
     print(f'- {t}')
 " 2>/dev/null)
 
+# Extract vault notes created (for daily note "Notes Created" list)
+# Filter: .md files in vault, excluding transcripts/archives/journals
+NOTES_CREATED=$(echo "$SUMMARY_JSON" | python3 -c "
+import json,sys
+from pathlib import Path
+d=json.load(sys.stdin)
+paths = d.get('tool_summary', {}).get('files_created_paths', [])
+vault = '$VAULT_PATH'
+notes = []
+for p in paths:
+    if not p.endswith('.md'):
+        continue
+    if not p.startswith(vault):
+        continue
+    # Skip transcripts, archives, journals (not 'notes')
+    rel = p[len(vault):].lstrip('/')
+    if rel.startswith(('ai-chats/', 'journals/')):
+        continue
+    # Extract note name (filename without .md)
+    name = Path(p).stem
+    notes.append(name)
+for n in notes:
+    print(n)
+" 2>/dev/null)
+
 # Archive full transcript FIRST (so we can link to it in checkpoint)
 ARCHIVE_DIR="$VAULT_PATH/ai-chats/transcripts/$DATE/archives"
 mkdir -p "$ARCHIVE_DIR"
@@ -102,11 +132,14 @@ MARKDOWN_ARCHIVE="$ARCHIVE_DIR/session-$DATE-$ARCHIVE_TIMESTAMP-full.md"
 # Create relative path for Obsidian wiki-link (from vault root)
 ARCHIVE_LINK="ai-chats/transcripts/$DATE/archives/session-$DATE-$ARCHIVE_TIMESTAMP-full"
 
+# Get project name from CWD (last directory in path)
+PROJECT_NAME="${CWD##*/}"
+
 # Create checkpoint entry with structured data (including archive link)
-CHECKPOINT_ENTRY="### ~$TIME - Checkpoint (Pre-Compaction)
+CHECKPOINT_ENTRY="### ~$TIME - Checkpoint (Pre-Compaction) — $PROJECT_NAME
 Context auto-saved before compaction ($TRIGGER trigger). [[${ARCHIVE_LINK}|Full transcript]]
 
-**Session:** $SESSION_TYPE | $MESSAGE_COUNT messages | $TOOL_CALLS tool calls | $FILES_CREATED created | $FILES_MODIFIED modified
+**Session:** $PROJECT_NAME | $SESSION_TYPE | $MESSAGE_COUNT messages | $TOOL_CALLS tool calls | $FILES_CREATED created | $FILES_MODIFIED modified
 
 **Key Activities:**
 $ACTIVITIES
@@ -142,72 +175,19 @@ else
     fi
 fi
 
-# Generate brief summary for daily note bullet
-# Format: "Pre-compaction (N msgs). Session type - key topic"
-KEY_TOPIC=$(echo "$SUMMARY_JSON" | python3 -c "
-import json,sys,re
-d=json.load(sys.stdin)
-
-# Common greetings to skip when finding meaningful topics
-GREETINGS = {
-    'gm', 'gm claude', 'gm!', 'good morning', 'good morning claude',
-    'hi', 'hi claude', 'hello', 'hello claude', 'hey', 'hey claude',
-    'hi there', 'hello there', 'thanks', 'thank you', 'ty',
-}
-
-# Try to extract a meaningful topic from user requests
-topics = d.get('user_topics', [])
-for topic in topics:
-    # Strip XML tags and wiki-link formatting for comparison
-    clean = re.sub(r'<[^>]+>', '', topic)  # Remove XML/HTML tags
-    clean = re.sub(r'\[\[([^\]|]+)(\|[^\]]+)?\]\]', r'\1', clean)
-    # Get first meaningful phrase
-    match = re.match(r'^([^.!?,;:]+)', clean)
-    if match:
-        phrase = match.group(1).strip()
-        # Skip greetings
-        if phrase.lower() in GREETINGS:
-            continue
-        # Skip very short phrases (likely greetings or acknowledgments)
-        if len(phrase) < 10:
-            continue
-        # Truncate if too long
-        if len(phrase) > 50:
-            phrase = phrase[:47] + '...'
-        print(phrase)
-        sys.exit(0)
-
-# Fallback: try to get a project name from activities
-activities = d.get('activities', [])
-for act in activities:
-    # Look for project-like paths
-    if '/intuition/' in act.lower():
-        print('Intuition work')
-        sys.exit(0)
-    if '/seeds/' in act.lower():
-        print('Vault/workflow updates')
-        sys.exit(0)
-    if '/dotfiles/' in act.lower():
-        print('Tooling updates')
-        sys.exit(0)
-
-# No meaningful topic found
-print('')
-" 2>/dev/null)
-
-# Build summary: include session type and key topic if available
-if [[ -n "$KEY_TOPIC" ]]; then
-    CHECKPOINT_SUMMARY="Pre-compaction ($MESSAGE_COUNT msgs). $SESSION_TYPE - $KEY_TOPIC"
-else
-    CHECKPOINT_SUMMARY="Pre-compaction ($MESSAGE_COUNT msgs). $SESSION_TYPE"
-fi
+# Build summary: repo name + session type (simple and clear)
+CHECKPOINT_SUMMARY="Pre-compaction ($MESSAGE_COUNT msgs). **$PROJECT_NAME** | $SESSION_TYPE"
 
 # Create anchor ID for deep linking (matches the checkpoint header in transcript)
-# Header: ### ~11:06am - Checkpoint (Pre-Compaction)
-ANCHOR_ID="~${TIME} - Checkpoint (Pre-Compaction)"
+# Header: ### ~11:06am - Checkpoint (Pre-Compaction) — dotfiles
+ANCHOR_ID="~${TIME} - Checkpoint (Pre-Compaction) — ${PROJECT_NAME}"
 
 # Update checkpoint count in daily note (with anchor for deep linking)
-"$LIB_DIR/update-checkpoint-count.sh" "$VAULT_PATH" "$DATE" "$CHECKPOINT_SUMMARY" "$ANCHOR_ID" 2>/dev/null || true
+HOOK_LOG="$VAULT_PATH/ai-chats/transcripts/$DATE/hook-debug.log"
+"$LIB_DIR/update-checkpoint-count.sh" "$VAULT_PATH" "$DATE" "$CHECKPOINT_SUMMARY" "$ANCHOR_ID" "$NOTES_CREATED" 2>>"$HOOK_LOG" || {
+    echo "[$(date +%H:%M:%S)] pre-compact: update-checkpoint-count.sh FAILED (exit $?)" >> "$HOOK_LOG"
+    true  # Don't fail the hook
+}
 
 # Output success status
 echo "{\"status\": \"success\", \"checkpoint_time\": \"$TIME\", \"trigger\": \"$TRIGGER\", \"messages\": $MESSAGE_COUNT, \"archive\": \"$ARCHIVE_DIR\"}"

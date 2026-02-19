@@ -80,6 +80,7 @@ date: YYYY-MM-DD
 source: claude-code
 project: {detected project name}
 umbrella: {parent grouping if applicable}
+session_name: {conversation/session name if renamed, null if default}
 session_type: engineering
 tags: [{auto-detected from content}]
 files_touched:
@@ -95,6 +96,7 @@ git_branch: {if applicable}
 **Frontmatter field guidelines:**
 - `project`: From git detection or user input
 - `umbrella`: Groups related projects (intuition, hats, personal)
+- `session_name`: The conversation name (from `/rename` or session title). If the session was renamed, use that name. This creates traceability between exported transcripts and the notes/artifacts produced during the session. Omit or set to null if using the default unnamed session.
 - `session_type`: `engineering` | `debugging` | `refactoring` | `research` | `planning`
 - `tags`: Extract from content - languages, frameworks, concepts
 - `files_touched`: All files created or modified
@@ -215,36 +217,34 @@ Create two separate files with consistent frontmatter:
 
 Both files get the same frontmatter for consistent knowledge graph ingestion.
 
-## Historical Transcript Integration
+## Full Transcript via JSONL Parser
 
-Before generating the export, check for today's daily transcript to capture pre-compaction content:
+For `-f` and `-b` exports, use the JSONL parser to generate the complete transcript from the raw conversation log. This captures the full conversation including pre-compaction content.
 
+### How to generate the transcript file:
+
+1. Find the current session's JSONL file:
+   - The JSONL path is available in the conversation context (system prompt or transcript metadata)
+   - Alternatively, find the most recent `.jsonl` in `~/.claude/projects/` matching the current working directory
+2. Run the parser:
+   ```bash
+   python3 ~/.config/claude-code/hooks/lib/parse-transcript.py <jsonl_path> --export-markdown <output_path>
+   ```
+   - This produces clean markdown: no emojis, system noise stripped, tool calls shown with context
+   - Supports `--since-timestamp ISO_TIMESTAMP` to export only a time range
+3. Read the generated file and prepend the YAML frontmatter (from the frontmatter template above)
+4. The parser handles: system-reminder stripping, tool call formatting, wiki-links, session stats
+
+### Fallback (if JSONL not available):
+
+If the JSONL file can't be found, fall back to the previous approach:
 1. Read vault path from `~/.config/claude-code-workflow/config.json` (key: `obsidian_vault_path`)
 2. Look for transcript at: `[vault_path]/ai-chats/transcripts/[YYYY-MM-DD]/daily-session-[YYYY-MM-DD].md`
-3. If found, also check for archived checkpoints at: `[vault_path]/ai-chats/transcripts/[YYYY-MM-DD]/archives/`
-4. Read the historical transcript and any checkpoint archives to capture pre-compacted conversation content
-5. When generating full transcripts (`-f` or `-b`), prepend the historical content with clear structure:
+3. Check for archived checkpoints at: `[vault_path]/ai-chats/transcripts/[YYYY-MM-DD]/archives/`
+4. Reconstruct from checkpoint summaries + current context
 
-```markdown
-## Historical Content (Pre-Compaction)
-*The following content was captured from checkpoints before conversation compaction occurred:*
-
-### From Daily Transcript
-[Session Log entries from daily-session-YYYY-MM-DD.md]
-
-### Archived Checkpoints
-[Content from archives/ folder, if any]
-
----
-
-## Current Session Context
-*The following is the conversation content currently in Claude's context:*
-```
-
-6. For summary exports (`-s`), use the historical transcript to inform a more complete summary that includes:
-   - Earlier decisions and context from the day
-   - Checkpoint summaries and key activities
-   - Continuity with previous session work
+### For summary exports (`-s`):
+Use the JSONL parser's default mode (no `--export-markdown`) to get structured JSON with session stats, then combine with your own summary of the conversation content.
 
 ## Common Obsidian Locations
 

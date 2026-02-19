@@ -81,13 +81,34 @@ if [[ -f "$SCRIPT_DIR/templates/obsidian/daily-journal.md" ]]; then
     echo "  ✓ Daily Journal Template.md"
 fi
 
-# Copy config.sh helper
+# Copy hooks and library scripts
 echo ""
-echo "Installing hooks library..."
+echo "Installing hooks..."
 mkdir -p "$HOME/.config/claude-code/hooks/lib"
-if [[ -f "$SCRIPT_DIR/hooks/lib/config.sh" ]]; then
-    cp "$SCRIPT_DIR/hooks/lib/config.sh" "$HOME/.config/claude-code/hooks/lib/"
-    echo "  ✓ config.sh"
+
+for hook in "$SCRIPT_DIR/hooks/"*.sh; do
+    if [[ -f "$hook" ]]; then
+        name=$(basename "$hook")
+        cp "$hook" "$HOME/.config/claude-code/hooks/$name"
+        chmod +x "$HOME/.config/claude-code/hooks/$name"
+        echo "  ✓ hooks/$name"
+    fi
+done
+
+for lib in "$SCRIPT_DIR/hooks/lib/"*.sh; do
+    if [[ -f "$lib" ]]; then
+        name=$(basename "$lib")
+        cp "$lib" "$HOME/.config/claude-code/hooks/lib/$name"
+        chmod +x "$HOME/.config/claude-code/hooks/lib/$name"
+        echo "  ✓ hooks/lib/$name"
+    fi
+done
+
+# Copy parse-transcript.py if available
+if [[ -f "$SCRIPT_DIR/scripts/parse-transcript.py" ]]; then
+    cp "$SCRIPT_DIR/scripts/parse-transcript.py" "$HOME/.config/claude-code/hooks/lib/"
+    chmod +x "$HOME/.config/claude-code/hooks/lib/parse-transcript.py"
+    echo "  ✓ hooks/lib/parse-transcript.py"
 fi
 
 echo ""
