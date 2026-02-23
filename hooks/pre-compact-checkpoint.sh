@@ -113,6 +113,25 @@ for n in notes:
     print(n)
 " 2>/dev/null)
 
+# Get project name from CWD (last directory in path)
+PROJECT_NAME="${CWD##*/}"
+
+# Dedup: only report notes NOT already listed in a previous checkpoint today
+REPORTED_STATE="$VAULT_PATH/ai-chats/transcripts/$DATE/.notes-reported-${PROJECT_NAME}.txt"
+if [[ -n "$NOTES_CREATED" ]]; then
+    if [[ -f "$REPORTED_STATE" ]]; then
+        # Filter out notes already reported in earlier checkpoints
+        NEW_NOTES=$(comm -23 <(echo "$NOTES_CREATED" | sort) <(sort "$REPORTED_STATE"))
+    else
+        NEW_NOTES="$NOTES_CREATED"
+    fi
+    # Update state with all notes seen so far (overwrite for idempotency)
+    { cat "$REPORTED_STATE" 2>/dev/null; echo "$NOTES_CREATED"; } | sort -u > "${REPORTED_STATE}.tmp"
+    mv "${REPORTED_STATE}.tmp" "$REPORTED_STATE"
+    # Use only truly new notes for this checkpoint
+    NOTES_CREATED="$NEW_NOTES"
+fi
+
 # Archive full transcript FIRST (so we can link to it in checkpoint)
 ARCHIVE_DIR="$VAULT_PATH/ai-chats/transcripts/$DATE/archives"
 mkdir -p "$ARCHIVE_DIR"
@@ -131,9 +150,6 @@ MARKDOWN_ARCHIVE="$ARCHIVE_DIR/session-$DATE-$ARCHIVE_TIMESTAMP-full.md"
 
 # Create relative path for Obsidian wiki-link (from vault root)
 ARCHIVE_LINK="ai-chats/transcripts/$DATE/archives/session-$DATE-$ARCHIVE_TIMESTAMP-full"
-
-# Get project name from CWD (last directory in path)
-PROJECT_NAME="${CWD##*/}"
 
 # Create checkpoint entry with structured data (including archive link)
 CHECKPOINT_ENTRY="### ~$TIME - Checkpoint (Pre-Compaction) — $PROJECT_NAME
