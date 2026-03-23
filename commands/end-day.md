@@ -17,7 +17,7 @@ When running `/end-day` after midnight, the system date is technically "tomorrow
 
 1. **If `--date YYYY-MM-DD` is provided**: Use that date explicitly
 2. **Otherwise, auto-detect**:
-   - Search for recent daily session transcripts: `ai-chats/transcripts/*/daily-session-*.md`
+   - Search for recent daily session transcripts: `local/ai-chats/transcripts/*/daily-session-*.md`
    - Find transcripts with an **incomplete handoff** (contains placeholder text: `*To be generated at end of session`)
    - Use the most recent incomplete transcript's date
    - If no incomplete transcript found, fall back to today's system date
@@ -28,12 +28,12 @@ This means running `/end-day` at 1am on 12/17 will correctly find and complete t
 
 1. **Determine session date** (via auto-detection or `--date` flag)
 
-2. **Read the session's transcript** (`ai-chats/transcripts/YYYY-MM-DD/daily-session-YYYY-MM-DD.md`):
+2. **Read the session's transcript** (`local/ai-chats/transcripts/YYYY-MM-DD/daily-session-YYYY-MM-DD.md`):
    - Review the Session Log entries and checkpoints
    - Identify key accomplishments, decisions, and open threads
 
 3. **Scan the session date's Claude Code exports** (cross-session aggregation):
-   - Search for summary files: `ai-chats/claude-code/**/*-summary.md`
+   - Search for summary files: `local/ai-chats/claude-code/**/*-summary.md`
    - Filter to files with the session date in the filename (YYYY-MM-DD pattern)
    - For each summary found:
      - Parse YAML frontmatter (project, duration, files_touched)
@@ -48,7 +48,7 @@ This means running `/end-day` at 1am on 12/17 will correctly find and complete t
    - Note key files touched or created
    - Add context for tomorrow's session
 
-5. **Update the session date's daily note** (`journals/YYYY-MM-DD.md`):
+5. **Update the session date's daily note** (`local/journals/YYYY-MM-DD.md`):
    - Finalize the Claude Sessions entry with accurate checkpoint count
    - Ensure description reflects what was actually done
    - Optionally add key learnings to "Learning Points" section
@@ -70,7 +70,7 @@ This means running `/end-day` at 1am on 12/17 will correctly find and complete t
 
 ### Other Sessions Today
 
-*From exported Claude Code sessions (`ai-chats/claude-code/`):*
+*From exported Claude Code sessions (`local/ai-chats/claude-code/`):*
 
 | Project | Sessions | Key Accomplishments |
 |---------|----------|---------------------|
@@ -113,5 +113,6 @@ This means running `/end-day` at 1am on 12/17 will correctly find and complete t
 - "Unified Open Threads" gives tomorrow a prioritized starting point across all work
 - Keep the handoff concise but complete enough to resume context
 - **No `/export-conversation` needed after this** — the handoff IS the export for the daily session
+- **Daily GN integration**: After completing the handoff, check if `/daily-gn` has been run today (look for `local/daily-gn/YYYY-MM-DD.md`). If not, offer: "Want me to generate your Daily GN for the team? (run /daily-gn)"
 - Use `date +"%I:%M%p"` for accurate timestamps when writing handoff
 - **Late-night sessions**: Auto-detection handles sessions that span past midnight. Use `--date` flag if you need explicit control.

@@ -40,14 +40,14 @@ Light mode skips:
 
 ## What This Command Does (Full Mode)
 
-1. **Read today's daily note** (`journals/YYYY-MM-DD.md`):
+1. **Read today's daily note** (`local/journals/YYYY-MM-DD.md`):
    - Extract mood from "Mood Check"
    - Extract focus items from "Today's Focus"
    - Note key reflections or context from their writing
    - Note any existing Claude Sessions entries
 
 2. **Find and read the most recent handoff** (handles gaps gracefully):
-   - Search for transcripts: `ai-chats/transcripts/*/daily-session-*.md`
+   - Search for transcripts: `local/ai-chats/transcripts/*/daily-session-*.md`
    - Sort by date descending, exclude today
    - Read the most recent one's "Session Handoff" section
    - Note how many days ago the last session was (for context)
@@ -55,8 +55,8 @@ Light mode skips:
    - If handoff section is incomplete: use what's available, note the gap
 
 3. **Scan recent Claude Code exports** (cross-session context):
-   - Search for summary files: `ai-chats/claude-code/**/*-summary.md`
-   - **Exclude**: `ai-chats/claude-code/seeds/` (daily session exports are redundant with handoff)
+   - Search for summary files: `local/ai-chats/claude-code/**/*-summary.md`
+   - **Exclude**: `local/ai-chats/claude-code/seeds/` (daily session exports are redundant with handoff)
    - Filter to files modified since the last daily session date
    - For each summary found:
      - Parse YAML frontmatter (project, tags, duration, files_touched)
@@ -66,14 +66,14 @@ Light mode skips:
    - If no exports found: note this but proceed (not all work generates exports)
 
 4. **Create today's transcript file**:
-   - Create directory: `ai-chats/transcripts/YYYY-MM-DD/`
+   - Create directory: `local/ai-chats/transcripts/YYYY-MM-DD/`
    - Create file: `daily-session-YYYY-MM-DD.md`
    - Use the template below, merging daily note + previous handoff + other session exports into rich context
 
 5. **Add session entry to daily note**:
    - In the "Claude Sessions" section, add:
      ```markdown
-     - ~HH:MMam - [[ai-chats/transcripts/YYYY-MM-DD/daily-session-YYYY-MM-DD|Daily Session: Topic]] *(0 checkpoints)* - Brief description
+     - ~HH:MMam - [[local/ai-chats/transcripts/YYYY-MM-DD/daily-session-YYYY-MM-DD|Daily Session: Topic]] *(0 checkpoints)* - Brief description
      ```
    - Include the approximate start time for continuity with checkpoint entries
 
@@ -90,7 +90,7 @@ Light mode skips:
 date: YYYY-MM-DD
 type: daily-session
 days_since_last: N
-previous_session: "[[ai-chats/transcripts/PREV-DATE/daily-session-PREV-DATE]]"
+previous_session: "[[local/ai-chats/transcripts/PREV-DATE/daily-session-PREV-DATE]]"
 projects: []
 tags:
   - DailySession
@@ -134,7 +134,7 @@ tags:
 
 ## Other Sessions Since Last Daily
 
-*Exported Claude Code sessions since last daily session (from `ai-chats/claude-code/`, excluding `seeds/`):*
+*Exported Claude Code sessions since last daily session (from `local/ai-chats/claude-code/`, excluding `seeds/`):*
 
 ### [[Project Name]] (N sessions)
 

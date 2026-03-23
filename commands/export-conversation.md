@@ -239,8 +239,8 @@ For `-f` and `-b` exports, use the JSONL parser to generate the complete transcr
 
 If the JSONL file can't be found, fall back to the previous approach:
 1. Read vault path from `~/.config/claude-code-workflow/config.json` (key: `obsidian_vault_path`)
-2. Look for transcript at: `[vault_path]/ai-chats/transcripts/[YYYY-MM-DD]/daily-session-[YYYY-MM-DD].md`
-3. Check for archived checkpoints at: `[vault_path]/ai-chats/transcripts/[YYYY-MM-DD]/archives/`
+2. Look for transcript at: `[vault_path]/local/ai-chats/transcripts/[YYYY-MM-DD]/daily-session-[YYYY-MM-DD].md`
+3. Check for archived checkpoints at: `[vault_path]/local/ai-chats/transcripts/[YYYY-MM-DD]/archives/`
 4. Reconstruct from checkpoint summaries + current context
 
 ### For summary exports (`-s`):
@@ -288,7 +288,7 @@ After creating the export file(s), update today's daily note in the Obsidian vau
 **Parameters:**
 - `project`: Detected project name, title-cased (e.g., "Intuition Portal")
 - `topic`: 2-4 word topic from conversation (e.g., "XState Refactor")
-- `export_path`: Relative path from vault root (e.g., "ai-chats/claude-code/intuition-portal/2025-12-11-0930-xstate-refactor-summary.md")
+- `export_path`: Relative path from vault root (e.g., "local/ai-chats/claude-code/intuition-portal/2025-12-11-0930-xstate-refactor-summary.md")
 - `description`: Brief summary of key accomplishments (under 80 chars)
 
 **Example call:**
@@ -296,7 +296,7 @@ After creating the export file(s), update today's daily note in the Obsidian vau
 ~/.config/claude-code/hooks/lib/add-export-to-daily.sh \
   "Intuition Portal" \
   "XState Refactor" \
-  "ai-chats/claude-code/intuition-portal/2025-12-11-0930-xstate-refactor-summary.md" \
+  "local/ai-chats/claude-code/intuition-portal/2025-12-11-0930-xstate-refactor-summary.md" \
   "Transaction queue implementation, state machine fixes"
 ```
 
@@ -310,7 +310,7 @@ The script handles:
 ### Entry Format (produced by script)
 
 ```markdown
-- ~HH:MMam - [[ai-chats/claude-code/{project}/{filename}|{Project}: Topic]] - Brief description
+- ~HH:MMam - [[local/ai-chats/claude-code/{project}/{filename}|{Project}: Topic]] - Brief description
 ```
 
 **Format guidelines:**
@@ -323,17 +323,17 @@ The script handles:
 
 **From intuition-portal project:**
 ```markdown
-- ~9:14am - [[ai-chats/claude-code/intuition-portal/2025-12-08-0914-ai-writes-modal-ux-fixes-summary|Intuition Portal: AI Writes UX Fixes]] - Rate limiting refactor, modal close buttons, AI SDK v5 migration
+- ~9:14am - [[local/ai-chats/claude-code/intuition-portal/2025-12-08-0914-ai-writes-modal-ux-fixes-summary|Intuition Portal: AI Writes UX Fixes]] - Rate limiting refactor, modal close buttons, AI SDK v5 migration
 ```
 
 **From seeds vault (personal):**
 ```markdown
-- ~2:30pm - [[ai-chats/claude-code/seeds/2025-12-08-1430-surrealdb-adapter-summary|Seeds: SurrealDB Adapter]] - Vector adapter implementation, query interface design
+- ~2:30pm - [[local/ai-chats/claude-code/seeds/2025-12-08-1430-surrealdb-adapter-summary|Seeds: SurrealDB Adapter]] - Vector adapter implementation, query interface design
 ```
 
 **From hats-protocol project:**
 ```markdown
-- ~4:15pm - [[ai-chats/claude-code/hats-protocol/2025-12-08-1615-subgraph-fixes-summary|Hats Protocol: Subgraph Fixes]] - Event handler updates, entity relationship mapping
+- ~4:15pm - [[local/ai-chats/claude-code/hats-protocol/2025-12-08-1615-subgraph-fixes-summary|Hats Protocol: Subgraph Fixes]] - Event handler updates, entity relationship mapping
 ```
 
 ### Edge Cases (handled by script)
@@ -352,7 +352,7 @@ This command produces exports compatible with:
 - [[Personal World Model PRD]] - knowledge graph ingestion
 - Daily session workflow - same wiki-link conventions
 
-Exports go to: `ai-chats/claude-code/{project}/YYYY-MM-DD-HHMM-topic.md`
+Exports go to: `local/ai-chats/claude-code/{project}/YYYY-MM-DD-HHMM-topic.md`
 
 ## Error Handling:
 - Create directories if they don't exist

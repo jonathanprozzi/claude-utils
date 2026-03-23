@@ -37,7 +37,7 @@ get_vault_path() {
     fi
 
     # Fallback to CWD detection
-    if [[ -z "$vault_path" && -d "$cwd/ai-chats/transcripts" ]]; then
+    if [[ -z "$vault_path" && -d "$cwd/local/ai-chats/transcripts" ]]; then
         vault_path="$cwd"
     fi
 

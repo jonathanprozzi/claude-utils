@@ -11,11 +11,11 @@ Create a timestamped checkpoint in the current daily session transcript.
 ## What This Command Does
 
 1. **Identify the current transcript file:**
-   - Look for `ai-chats/transcripts/YYYY-MM-DD/daily-session-YYYY-MM-DD.md` in the current vault
+   - Look for `local/ai-chats/transcripts/YYYY-MM-DD/daily-session-YYYY-MM-DD.md` in the current vault
    - Use today's date
 
 2. **Archive the current conversation:**
-   - Create archive directory: `ai-chats/transcripts/YYYY-MM-DD/archives/`
+   - Create archive directory: `local/ai-chats/transcripts/YYYY-MM-DD/archives/`
    - Export full transcript to Markdown: `session-YYYY-MM-DD-HHMM-full.md`
    - This preserves the full conversation at checkpoint time
 
@@ -32,7 +32,7 @@ Create a timestamped checkpoint in the current daily session transcript.
    - Include summary points
 
 5. **Update daily note:**
-   - Find today's daily note at `journals/YYYY-MM-DD.md`
+   - Find today's daily note at `local/journals/YYYY-MM-DD.md`
    - Increment the checkpoint count (e.g., `*(2 checkpoints)*` → `*(3 checkpoints)*`)
    - Add a nested bullet with deep link to the checkpoint section
 
@@ -40,7 +40,7 @@ Create a timestamped checkpoint in the current daily session transcript.
 
 ```markdown
 ### ~[TIME] - Checkpoint
-[Summary line - user note or auto-generated]. [[ai-chats/transcripts/YYYY-MM-DD/archives/session-YYYY-MM-DD-HHMM-full|Full transcript]]
+[Summary line - user note or auto-generated]. [[local/ai-chats/transcripts/YYYY-MM-DD/archives/session-YYYY-MM-DD-HHMM-full|Full transcript]]
 
 **Session:** [[Session Type]] | [N] messages | [N] tool calls | [N] created | [N] modified
 
@@ -106,6 +106,16 @@ Use [[wiki-links]] liberally for:
 - Tools: [[Obsidian]], [[Claude Code]], [[pgvector]]
 - Your notes: [[PRD]], [[Intuition AI Research]]
 
+## Tracking Integration
+
+After creating the checkpoint entry, also log the accomplishment for Daily GN tracking:
+
+```bash
+~/.config/claude-code/hooks/lib/track-accomplishment.sh "checkpoint" "<summary line>" "<key activities>"
+```
+
+This ensures the checkpoint's summary appears in the daily tracking log at `local/daily-gn/.tracking/YYYY-MM-DD.jsonl`, which `/daily-gn` uses to compile the day's accomplishments.
+
 ## Implementation Notes
 
 - Transcript file should already exist (created by `/daily-session`)
@@ -122,7 +132,7 @@ User: `/checkpoint Finished knowledge graph PRD and research integration`
 **Result in transcript:**
 ```markdown
 ### ~10:20am - Checkpoint
-Finished knowledge graph PRD and research integration. [[ai-chats/transcripts/2025-12-02/archives/session-2025-12-02-1020-full|Full transcript]]
+Finished knowledge graph PRD and research integration. [[local/ai-chats/transcripts/2025-12-02/archives/session-2025-12-02-1020-full|Full transcript]]
 
 **Session:** [[Planning]] + [[Research]] | ~80 messages | ~40 tool calls | 2 created | 3 modified
 

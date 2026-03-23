@@ -205,6 +205,10 @@ HOOK_LOG="$VAULT_PATH/ai-chats/transcripts/$DATE/hook-debug.log"
     true  # Don't fail the hook
 }
 
+# Track accomplishment for Daily GN
+TRACK_SUMMARY="Pre-compaction checkpoint: $SESSION_TYPE ($MESSAGE_COUNT msgs, $FILES_CREATED created, $FILES_MODIFIED modified)"
+"$LIB_DIR/track-accomplishment.sh" "compaction" "$TRACK_SUMMARY" "$PROJECT_NAME" 2>/dev/null || true
+
 # Output success status
 echo "{\"status\": \"success\", \"checkpoint_time\": \"$TIME\", \"trigger\": \"$TRIGGER\", \"messages\": $MESSAGE_COUNT, \"archive\": \"$ARCHIVE_DIR\"}"
 exit 0
