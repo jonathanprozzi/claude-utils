@@ -1,72 +1,47 @@
 ---
 name: zork
-description: Play Zork text adventure via dfrotz. Use /zork <command> to play (e.g., /zork go north), /zork for status, /zork new to restart, /zork setup to configure Obsidian sync.
+description: "Play Zork I text adventure via dfrotz with persistent save state and optional Obsidian sync. Use when the user wants to play Zork, explore interactive fiction, or test text adventure parser conventions."
 allowed-tools: Bash, Read, Edit
 ---
 
 # Zork Interactive Fiction Skill
 
-Play the classic text adventure Zork I via dfrotz, with persistent save state and optional Obsidian integration for capturing learnings.
+Play Zork I via dfrotz with persistent save state and optional Obsidian integration for capturing learnings. Builds experiential intuition about text adventure parser conventions.
 
-## Quick Reference
+## Workflow
 
-| Command | What it does |
-|---------|--------------|
-| `/zork look` | Look around current room |
-| `/zork go north` | Move north (or any direction) |
-| `/zork take lamp` | Pick up an item |
-| `/zork inventory` | Check what you're carrying |
-| `/zork` | Show current status (look + inventory) |
-| `/zork new` | Start a fresh game |
-| `/zork setup` | Configure Obsidian vault for sync |
+1. **Play a turn** — run `bash scripts/play.sh "go north"` with any valid Zork command
+2. **Check status** — run `bash scripts/status.sh` to see current room and inventory
+3. **Start fresh** — run `bash scripts/new.sh` to archive current save and begin a new game
+4. **Configure Obsidian sync** — run `bash scripts/setup.sh /path/to/vault` to sync transcript and learnings
 
-## How to Play
+## Commands
 
-### Execute a single command:
-
-```bash
-bash scripts/play.sh "go north"
-```
-
-### Check current status:
-
-```bash
-bash scripts/status.sh
-```
-
-### Start a new game:
-
-```bash
-bash scripts/new.sh
-```
-
-### Configure Obsidian sync:
-
-```bash
-bash scripts/setup.sh /path/to/your/vault
-```
+| Invocation | Script | Purpose |
+|------------|--------|---------|
+| `/zork look` | `scripts/play.sh "look"` | Describe current room |
+| `/zork go north` | `scripts/play.sh "go north"` | Move in a direction |
+| `/zork take lamp` | `scripts/play.sh "take lamp"` | Pick up an item |
+| `/zork inventory` | `scripts/play.sh "inventory"` | List carried items |
+| `/zork` | `scripts/status.sh` | Show current room and inventory |
+| `/zork new` | `scripts/new.sh` | Archive save and start fresh |
+| `/zork setup` | `scripts/setup.sh` | Configure Obsidian vault sync |
 
 ## Game State
 
-- **Save file**: `state/claude.sav.qzl` - automatically saved after each command
-- **Transcript**: Append-only log of all commands and responses
-- **Learnings**: Your observations about the game (update with /zork reflect)
+- **Save file**: `state/claude.sav.qzl` — automatically saved after each turn
+- **Transcript**: append-only log at `state/TRANSCRIPT.md` (or Obsidian vault if configured)
+- **Config**: `state/config.json` — Obsidian vault path (optional)
 
-## Obsidian Integration
+## Troubleshooting
 
-If configured, transcript and learnings sync to your Obsidian vault as:
-- `Claude Plays Zork Transcript.md`
-- `Claude Plays Zork Learnings.md`
+- If `play.sh` fails, verify dfrotz is installed: `which dfrotz` (install via `brew install frotz`)
+- If save state seems corrupted, run `scripts/new.sh` to archive it and start fresh
 
-Run `bash scripts/setup.sh` to see current config or set a vault path.
+## Parser Reference
 
-## Tips
+- **Verbs**: `look`, `examine`, `take`, `drop`, `open`, `close`, `go`, `read`, `inventory`
+- **Directions**: `north`, `south`, `east`, `west`, `up`, `down`, `ne`, `nw`, `se`, `sw`
+- **Abbreviations**: `n` for north, `i` for inventory, `l` for look
 
-- Classic text adventure verbs: `look`, `examine`, `take`, `drop`, `open`, `close`, `go`, `inventory`
-- Directions: `north`, `south`, `east`, `west`, `up`, `down`, `ne`, `nw`, `se`, `sw`
-- You can abbreviate: `n` for north, `i` for inventory, `l` for look
-- Save happens automatically after each command
-
-## Purpose
-
-This skill helps Claude build experiential intuition about text adventures and parser conventions, informing the design of AI companions in Emergent Quest.
+See [README.md](README.md) for installation, Obsidian sync details, and dfrotz flags.
